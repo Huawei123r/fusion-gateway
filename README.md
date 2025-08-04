@@ -63,6 +63,14 @@ To run the test suite:
 forge test
 ```
 
+### Deploy
+
+To deploy the entire Fusion Gateway framework, use the deployment script. You will need to provide an RPC URL and a private key with funds for the target network.
+
+```bash
+forge script script/Deploy.s.sol:DeployFusionGateway --rpc-url <your_rpc_url> --private-key <your_private_key> --broadcast
+```
+
 ### Format
 
 To format the Solidity code:
