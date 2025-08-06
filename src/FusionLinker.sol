@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+
 /**
  * @title FusionLinker
  * @author Gemini
@@ -12,7 +15,7 @@ pragma solidity ^0.8.20;
  * for asynchronous HTTPS requests. The exact syntax (`rialo.httpGet`, `await`)
  * is a placeholder and will be updated once the official DevNet documentation is available.
  */
-contract FusionLinker {
+contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
 
     // Event to be emitted when an API response is received.
     // This allows off-chain services or other contracts to react to the fetched data.
@@ -33,6 +36,16 @@ contract FusionLinker {
 
     // Mapping from request ID to the request details.
     mapping(uint256 => Request) public requests;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public virtual initializer {
+        __Ownable_init(initialOwner);
+        __UUPSUpgradeable_init();
+    }
 
     /**
      * @notice Initiates an HTTP GET request to the specified URL.
@@ -77,4 +90,8 @@ contract FusionLinker {
         // For now, we just emit the raw response.
         emit ResponseReceived(_requestId, _statusCode, _responseBody);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    uint256[50] private __gap;
 }

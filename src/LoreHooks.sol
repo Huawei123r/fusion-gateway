@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /**
  * @title LoreHooks
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * It can be used to invoke dynamic on-chain events in response to specific patterns
  * or values found in API responses.
  */
-contract LoreHooks is Ownable {
+contract LoreHooks is UUPSUpgradeable, OwnableUpgradeable {
 
     // Event emitted when a specific lore-based condition is met.
     event LoreTriggered(
@@ -30,7 +31,15 @@ contract LoreHooks is Ownable {
     // Mapping from a trigger ID to its conditions.
     mapping(bytes32 => LoreTrigger) public triggers;
 
-    constructor() Ownable(msg.sender) {}
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public initializer {
+        __Ownable_init(initialOwner);
+        __UUPSUpgradeable_init();
+    }
 
     /**
      * @notice Defines a new lore trigger.
@@ -92,4 +101,8 @@ contract LoreHooks is Ownable {
         }
         return false;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    uint256[50] private __gap;
 }

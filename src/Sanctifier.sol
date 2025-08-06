@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+
 /**
  * @title Sanctifier
  * @author Gemini
@@ -13,7 +16,17 @@ pragma solidity ^0.8.20;
  * purposes. A production-ready version would require a more sophisticated
  * and gas-efficient parsing library or native pre-compiled contracts for JSON manipulation.
  */
-contract Sanctifier {
+contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public initializer {
+        __Ownable_init(initialOwner);
+        __UUPSUpgradeable_init();
+    }
 
     /**
      * @notice Parses a simple, flat JSON string to extract the value of a given key.
@@ -96,4 +109,8 @@ contract Sanctifier {
 
         return _haystack.length;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    uint256[50] private __gap;
 }

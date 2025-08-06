@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /**
  * @title SchemaForge
@@ -11,7 +12,7 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
  * expected data keys, and the address of a specific parser contract.
  * This allows for a more organized and secure way to manage API integrations.
  */
-contract SchemaForge is Ownable {
+contract SchemaForge is UUPSUpgradeable, OwnableUpgradeable {
 
     // Struct to define the schema for a specific API endpoint.
     struct ApiSchema {
@@ -27,7 +28,15 @@ contract SchemaForge is Ownable {
     // Event emitted when a new schema is registered or updated.
     event SchemaRegistered(bytes32 indexed schemaId, string name);
 
-    constructor() Ownable(msg.sender) {}
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public initializer {
+        __Ownable_init(initialOwner);
+        __UUPSUpgradeable_init();
+    }
 
     /**
      * @notice Registers or updates an API schema.
@@ -71,4 +80,8 @@ contract SchemaForge is Ownable {
     function getSchemaId(string memory _name) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_name));
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    uint256[50] private __gap;
 }

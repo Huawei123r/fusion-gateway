@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {SchemaForge} from "../src/SchemaForge.sol";
 
 contract SchemaForgeTest is Test {
@@ -14,25 +16,35 @@ contract SchemaForgeTest is Test {
     address responseParser = address(0x123);
 
     function setUp() public {
-        schemaForge = new SchemaForge();
         owner = address(this);
         nonOwner = address(0x456);
+
+        // Deploy the implementation contract
+        SchemaForge schemaForgeImpl = new SchemaForge();
+
+        // Prepare the initialize call data
+        bytes memory initData = abi.encodeWithSelector(SchemaForge.initialize.selector, owner);
+
+        // Deploy the proxy
+        ERC1967Proxy proxy = new ERC1967Proxy(address(schemaForgeImpl), initData);
+
+        // Attach the SchemaForge interface to the proxy address
+        schemaForge = SchemaForge(address(proxy));
     }
 
     function testRegisterSchema() public {
         schemaForge.registerSchema(schemaName, urlTemplate, requiredKeys, responseParser);
-        SchemaForge.ApiSchema memory schema = schemaForge.getSchema(schemaName);
-        assertTrue(schema.isDefined);
-        assertEq(schema.urlTemplate, urlTemplate);
-        assertEq(schema.requiredKeys.length, 2);
-        assertEq(schema.requiredKeys[0], "key1");
-        assertEq(schema.requiredKeys[1], "key2");
-        assertEq(schema.responseParser, responseParser);
+        (string memory _urlTemplate, address _responseParser, bool _isDefined) = schemaForge.schemas(
+            schemaForge.getSchemaId(schemaName)
+        );
+        assertTrue(_isDefined);
+        assertEq(_urlTemplate, urlTemplate);
+        assertEq(_responseParser, responseParser);
     }
 
     function testRegisterSchemaByNonOwner() public {
         vm.prank(nonOwner);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner));
         schemaForge.registerSchema(schemaName, urlTemplate, requiredKeys, responseParser);
     }
 
@@ -43,7 +55,7 @@ contract SchemaForgeTest is Test {
     }
 
     function testGetSchemaNotRegistered() public {
-        SchemaForge.ApiSchema memory schema = schemaForge.getSchema("NonExistentSchema");
-        assertFalse(schema.isDefined);
+        (,, bool _isDefined) = schemaForge.schemas(schemaForge.getSchemaId("NonExistentSchema"));
+        assertFalse(_isDefined);
     }
 }

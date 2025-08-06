@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {LoreHooks} from "../src/LoreHooks.sol";
 
 contract LoreHooksTest is Test {
@@ -13,9 +15,20 @@ contract LoreHooksTest is Test {
     string narrativeTemplate = "A test narrative.";
 
     function setUp() public {
-        loreHooks = new LoreHooks();
         owner = address(this);
         nonOwner = address(0x789);
+
+        // Deploy the implementation contract
+        LoreHooks loreHooksImpl = new LoreHooks();
+
+        // Prepare the initialize call data
+        bytes memory initData = abi.encodeWithSelector(LoreHooks.initialize.selector, owner);
+
+        // Deploy the proxy
+        ERC1967Proxy proxy = new ERC1967Proxy(address(loreHooksImpl), initData);
+
+        // Attach the LoreHooks interface to the proxy address
+        loreHooks = LoreHooks(address(proxy));
     }
 
     function testSetTrigger() public {
@@ -29,7 +42,7 @@ contract LoreHooksTest is Test {
 
     function testSetTriggerByNonOwner() public {
         vm.prank(nonOwner);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner));
         loreHooks.setTrigger(triggerName, keyword, narrativeTemplate);
     }
 

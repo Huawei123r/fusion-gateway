@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import {Wardstone} from "../src/Wardstone.sol";
 
 contract WardstoneTest is Test {
@@ -11,9 +13,20 @@ contract WardstoneTest is Test {
     string apiKey = "test-api-key";
 
     function setUp() public {
-        wardstone = new Wardstone();
         owner = address(this);
         nonOwner = address(0x123);
+
+        // Deploy the implementation contract
+        Wardstone wardstoneImpl = new Wardstone();
+
+        // Prepare the initialize call data
+        bytes memory initData = abi.encodeWithSelector(Wardstone.initialize.selector, owner);
+
+        // Deploy the proxy
+        ERC1967Proxy proxy = new ERC1967Proxy(address(wardstoneImpl), initData);
+
+        // Attach the Wardstone interface to the proxy address
+        wardstone = Wardstone(address(proxy));
     }
 
     function testAddApiKey() public {
@@ -23,7 +36,7 @@ contract WardstoneTest is Test {
 
     function testAddApiKeyByNonOwner() public {
         vm.prank(nonOwner);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner));
         wardstone.addApiKey(apiKey);
     }
 
@@ -37,7 +50,7 @@ contract WardstoneTest is Test {
     function testRemoveApiKeyByNonOwner() public {
         wardstone.addApiKey(apiKey);
         vm.prank(nonOwner);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner));
         wardstone.removeApiKey(apiKey);
     }
 

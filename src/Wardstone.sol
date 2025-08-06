@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /**
  * @title Wardstone
@@ -14,7 +15,7 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
  * granular permissions, role-based access control (RBAC), and more sophisticated
  * rate-limiting mechanisms (e.g., token bucket algorithm).
  */
-contract Wardstone is Ownable {
+contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
 
     // Mapping from a keccak256 hash of an API key to a boolean indicating its validity.
     // We store hashes to avoid exposing the raw API keys on-chain.
@@ -23,7 +24,15 @@ contract Wardstone is Ownable {
     // Event emitted when an API key is added or removed.
     event ApiKeyAuthorizationChanged(bytes32 indexed apiKeyHash, bool isAuthorized);
 
-    constructor() Ownable(msg.sender) {}
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address initialOwner) public initializer {
+        __Ownable_init(initialOwner);
+        __UUPSUpgradeable_init();
+    }
 
     /**
      * @notice Authorizes a new API key.
@@ -68,4 +77,8 @@ contract Wardstone is Ownable {
         // For now, it always returns true.
         return true;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    uint256[50] private __gap;
 }
