@@ -81,15 +81,16 @@ contract LoreHooks is UUPSUpgradeable, OwnableUpgradeable {
      * @return True if the needle is found, false otherwise.
      */
     function contains(bytes memory _haystack, bytes memory _needle) internal pure returns (bool) {
-        if (_needle.length == 0) {
+        uint256 needleLength = _needle.length;
+        if (needleLength == 0) {
             return true;
         }
-        if (_needle.length > _haystack.length) {
+        if (needleLength > _haystack.length) {
             return false;
         }
-        for (uint i = 0; i <= _haystack.length - _needle.length; i++) {
+        for (uint i = 0; i <= _haystack.length - needleLength; i++) {
             bool found = true;
-            for (uint j = 0; j < _needle.length; j++) {
+            for (uint j = 0; j < needleLength; j++) {
                 if (_haystack[i + j] != _needle[j]) {
                     found = false;
                     break;
