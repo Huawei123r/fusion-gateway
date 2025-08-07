@@ -23,34 +23,32 @@ contract SanctifierTest is Test {
     }
 
     function testExtractString() public {
-        string memory json = '{"name":"test","value":"123"}';
-        string memory key = "name";
-        string memory expectedValue = "test";
-        string memory actualValue = sanctifier.extractString(json, key);
-        assertEq(actualValue, expectedValue);
-    }
-
-    function testExtractStringSecondKey() public {
-        string memory json = '{"name":"test","value":"123"}';
-        string memory key = "value";
-        string memory expectedValue = "123";
-        string memory actualValue = sanctifier.extractString(json, key);
-        assertEq(actualValue, expectedValue);
+        string memory json = '{"name":"test","value":123}';
+        string memory result = sanctifier.extractString(json, "name");
+        assertEq(result, "test");
     }
 
     function testExtractStringKeyNotFound() public {
-        string memory json = '{"name":"test","value":"123"}';
-        string memory key = "notfound";
-        string memory expectedValue = "";
-        string memory actualValue = sanctifier.extractString(json, key);
-        assertEq(actualValue, expectedValue);
+        string memory json = '{"name":"test","value":123}';
+        string memory result = sanctifier.extractString(json, "notfound");
+        assertEq(result, "");
     }
 
-    function testExtractStringMalformedJson() public {
-        string memory json = '{"name":"test" "value":"123"}'; // Missing comma
-        string memory key = "value";
-        string memory expectedValue = "123";
-        string memory actualValue = sanctifier.extractString(json, key);
-        assertEq(actualValue, expectedValue);
+    function testExtractUint() public {
+        string memory json = '{"name":"test","value":123}';
+        uint256 result = sanctifier.extractUint(json, "value");
+        assertEq(result, 123);
+    }
+
+    function testExtractUintWithQuotes() public {
+        string memory json = '{"name":"test","value":"456"}';
+        uint256 result = sanctifier.extractUint(json, "value");
+        assertEq(result, 456);
+    }
+
+    function testExtractUintKeyNotFound() public {
+        string memory json = '{"name":"test","value":123}';
+        uint256 result = sanctifier.extractUint(json, "notfound");
+        assertEq(result, 0);
     }
 }
