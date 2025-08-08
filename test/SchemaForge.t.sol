@@ -11,8 +11,6 @@ contract SchemaForgeTest is Test {
     address owner;
     address nonOwner;
     string schemaName = "TestSchema";
-    string urlTemplate = "https://example.com/{id}";
-    string[] requiredKeys = ["key1", "key2"];
     address responseParser = address(0x123);
 
     function setUp() public {
@@ -27,25 +25,48 @@ contract SchemaForgeTest is Test {
 
         // Deploy the proxy
         ERC1967Proxy proxy = new ERC1967Proxy(address(schemaForgeImpl), initData);
-
         // Attach the SchemaForge interface to the proxy address
         schemaForge = SchemaForge(address(proxy));
     }
 
     function testRegisterSchema() public {
-        schemaForge.registerSchema(schemaName, urlTemplate, requiredKeys, responseParser);
-        (string memory _urlTemplate, address _responseParser, bool _isDefined) = schemaForge.schemas(
-            schemaForge.getSchemaId(schemaName)
-        );
-        assertTrue(_isDefined);
-        assertEq(_urlTemplate, urlTemplate);
-        assertEq(_responseParser, responseParser);
+        string[] memory urlParts = new string[](2);
+        urlParts[0] = "https://example.com/";
+        urlParts[1] = "/data";
+        string[] memory keyPlaceholders = new string[](1);
+        keyPlaceholders[0] = "id";
+        string[] memory requiredKeys = new string[](2);
+        requiredKeys[0] = "key1";
+        requiredKeys[1] = "key2";
+
+        schemaForge.registerSchema(schemaName, urlParts, keyPlaceholders, requiredKeys, responseParser);
+        
+        SchemaForge.ApiSchema memory schema = schemaForge.getSchema(schemaName);
+
+        assertTrue(schema.isDefined);
+        assertEq(schema.urlParts.length, 2);
+        assertEq(schema.keyPlaceholders.length, 1);
+        assertEq(schema.requiredKeys.length, 2);
+        assertEq(schema.responseParser, responseParser);
     }
 
     function testRegisterSchemaByNonOwner() public {
+        string[] memory urlParts;
+        string[] memory keyPlaceholders;
+        string[] memory requiredKeys;
         vm.prank(nonOwner);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner));
-        schemaForge.registerSchema(schemaName, urlTemplate, requiredKeys, responseParser);
+        schemaForge.registerSchema(schemaName, urlParts, keyPlaceholders, requiredKeys, responseParser);
+    }
+
+    function testRegisterSchemaInvalidTemplate() public {
+        string[] memory invalidUrlParts = new string[](1);
+        invalidUrlParts[0] = "https://example.com/";
+        string[] memory keyPlaceholders = new string[](1);
+        keyPlaceholders[0] = "id";
+        string[] memory requiredKeys;
+        vm.expectRevert("SchemaForge: Invalid template structure");
+        schemaForge.registerSchema(schemaName, invalidUrlParts, keyPlaceholders, requiredKeys, responseParser);
     }
 
     function testGetSchemaId() public {
@@ -55,7 +76,7 @@ contract SchemaForgeTest is Test {
     }
 
     function testGetSchemaNotRegistered() public {
-        (,, bool _isDefined) = schemaForge.schemas(schemaForge.getSchemaId("NonExistentSchema"));
-        assertFalse(_isDefined);
+        SchemaForge.ApiSchema memory schema = schemaForge.getSchema("NonExistentSchema");
+        assertFalse(schema.isDefined);
     }
 }

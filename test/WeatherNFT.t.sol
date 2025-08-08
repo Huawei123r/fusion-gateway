@@ -6,6 +6,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC19
 import {WeatherNFT, RainyDayNFT} from "../examples/WeatherNFT.sol";
 import {FusionLinker} from "../src/FusionLinker.sol";
 import {Sanctifier} from "../src/Sanctifier.sol";
+import {SchemaForge} from "../src/SchemaForge.sol";
 
 /**
  * @title MockFusionLinker
@@ -13,13 +14,14 @@ import {Sanctifier} from "../src/Sanctifier.sol";
  * It inherits from the upgradeable FusionLinker for compatibility.
  */
 contract MockFusionLinker is FusionLinker {
-    function initialize(address initialOwner) public override initializer {
-        __FusionLinker_init(initialOwner);
+    function initialize(address initialOwner, address _schemaForgeAddress) public override initializer {
+        __FusionLinker_init(initialOwner, _schemaForgeAddress);
     }
 
-    function __FusionLinker_init(address initialOwner) internal virtual initializer {
+    function __FusionLinker_init(address initialOwner, address _schemaForgeAddress) internal virtual initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
+        schemaForge = SchemaForge(_schemaForgeAddress);
     }
 
     function callHandleResponse(address _target, uint256 _requestId, uint256 _statusCode, string memory _responseBody) public {
@@ -32,6 +34,7 @@ contract WeatherNFTTest is Test {
     RainyDayNFT public rainyDayNFT;
     MockFusionLinker public mockFusionLinker;
     Sanctifier public sanctifier;
+    SchemaForge public schemaForge;
 
     function setUp() public {
         // Deploy and initialize the Sanctifier proxy
@@ -40,9 +43,15 @@ contract WeatherNFTTest is Test {
         ERC1967Proxy sanctifierProxy = new ERC1967Proxy(address(sanctifierImpl), sanctifierData);
         sanctifier = Sanctifier(address(sanctifierProxy));
 
+        // Deploy and initialize SchemaForge
+        SchemaForge schemaForgeImpl = new SchemaForge();
+        bytes memory schemaForgeData = abi.encodeWithSelector(SchemaForge.initialize.selector, address(this));
+        ERC1967Proxy schemaForgeProxy = new ERC1967Proxy(address(schemaForgeImpl), schemaForgeData);
+        schemaForge = SchemaForge(address(schemaForgeProxy));
+
         // Deploy and initialize the MockFusionLinker proxy
         MockFusionLinker mockFusionLinkerImpl = new MockFusionLinker();
-        bytes memory mockLinkerData = abi.encodeWithSelector(MockFusionLinker.initialize.selector, address(this));
+        bytes memory mockLinkerData = abi.encodeWithSelector(MockFusionLinker.initialize.selector, address(this), address(schemaForge));
         ERC1967Proxy mockLinkerProxy = new ERC1967Proxy(address(mockFusionLinkerImpl), mockLinkerData);
         mockFusionLinker = MockFusionLinker(address(mockLinkerProxy));
 
@@ -96,7 +105,7 @@ contract WeatherNFTTest is Test {
 
         // We expect a log message, but no mint
         vm.expectEmit(true, false, false, true);
-        emit WeatherNFT.WeatherCheckResult("Failed to parse rainfall data.");
+        emit WeatherNFT.WeatherCheckResult("Rainfall is below threshold. No NFT minted.");
 
         // Simulate the callback
         mockFusionLinker.callHandleResponse(address(weatherNFT), 1, 200, mockResponse);

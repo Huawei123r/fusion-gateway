@@ -16,7 +16,8 @@ contract SchemaForge is UUPSUpgradeable, OwnableUpgradeable {
 
     // Struct to define the schema for a specific API endpoint.
     struct ApiSchema {
-        string urlTemplate;         // The URL, potentially with placeholders (e.g., "https://api.example.com/data?id={id}")
+        string[] urlParts;          // The static parts of the URL, e.g., ["https://api.example.com/data?id=", "&key="]
+        string[] keyPlaceholders;   // The names of the keys for the dynamic parts, e.g., ["id", "apiKey"]
         string[] requiredKeys;      // A list of keys expected in the JSON response.
         address responseParser;     // The address of the contract responsible for parsing the response (e.g., a specific Sanctifier).
         bool isDefined;             // To check if a schema has been initialized.
@@ -42,19 +43,23 @@ contract SchemaForge is UUPSUpgradeable, OwnableUpgradeable {
      * @notice Registers or updates an API schema.
      * @dev Only the contract owner can call this function.
      * @param _name The human-readable name for the schema (e.g., "WeatherByCity").
-     * @param _urlTemplate The URL template for the API endpoint.
+     * @param _urlParts The static parts of the URL template.
+     * @param _keyPlaceholders The names of the keys for the dynamic parts.
      * @param _requiredKeys The list of keys expected in the response.
      * @param _responseParser The address of the parser contract.
      */
     function registerSchema(
         string memory _name,
-        string memory _urlTemplate,
+        string[] memory _urlParts,
+        string[] memory _keyPlaceholders,
         string[] memory _requiredKeys,
         address _responseParser
     ) public onlyOwner {
+        require(_urlParts.length == _keyPlaceholders.length + 1, "SchemaForge: Invalid template structure");
         bytes32 schemaId = getSchemaId(_name);
         schemas[schemaId] = ApiSchema({
-            urlTemplate: _urlTemplate,
+            urlParts: _urlParts,
+            keyPlaceholders: _keyPlaceholders,
             requiredKeys: _requiredKeys,
             responseParser: _responseParser,
             isDefined: true

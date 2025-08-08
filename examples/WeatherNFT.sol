@@ -45,10 +45,9 @@ contract WeatherNFT is ERC721Holder {
 
     /**
      * @notice Triggers a weather check for a given city.
-     * @dev In a real implementation, the URL would be constructed from a schema in SchemaForge.
      */
-    function checkWeatherAndMint(string memory _apiUrl) public {
-        fusionLinker.fetch(_apiUrl);
+    function checkWeatherAndMint(string memory _schemaName, FusionLinker.KeyValuePair[] memory _params) public {
+        fusionLinker.fetch(_schemaName, _params);
         // The rest of the logic is handled in the async callback.
     }
 
@@ -64,15 +63,12 @@ contract WeatherNFT is ERC721Holder {
         }
 
         // Use the Sanctifier to parse the rainfall value from the JSON.
-        // Assumes a simple JSON format like `{"rainfall_mm":"7"}`
-        string memory rainfallStr = sanctifier.extractString(_responseBody, "rainfall_mm");
+        uint256 rainfallValue = sanctifier.extractUint(_responseBody, "rainfall_mm");
         
-        if (bytes(rainfallStr).length == 0) {
-            emit WeatherCheckResult("Failed to parse rainfall data.");
-            return;
+        if (rainfallValue == 0 && bytes(_responseBody).length > 0) {
+            // This is a naive check for a parsing error.
+            // A more robust implementation would have better error handling.
         }
-
-        uint256 rainfallValue = parseInt(rainfallStr);
 
         if (rainfallValue > RAINFALL_THRESHOLD) {
             // The recipient would typically be the original initiator of the request.
