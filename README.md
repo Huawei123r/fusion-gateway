@@ -12,7 +12,7 @@ The Fusion Gateway aims to unlock programmable reactivity and real-world connect
 
 The framework is composed of several key modules:
 
--   **`FusionLinker.sol`**: The core HTTP fetcher that initiates requests.
+-   **`FusionLinker.sol`**: The core HTTP fetcher that initiates `GET` and `POST` requests.
 -   **`Sanctifier.sol`**: A data validation and cleaning utility.
 -   **`Wardstone.sol`**: An access control and security module for managing API keys and rate limits.
 -   **`SchemaForge.sol`**: A registry for managing and reusing API endpoint definitions.

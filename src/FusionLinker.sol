@@ -32,6 +32,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
     struct Request {
         address initiator;
         string url;
+        bytes body; // Added for POST requests
     }
 
     // Mapping from request ID to the request details.
@@ -51,29 +52,47 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
      * @notice Initiates an HTTP GET request to the specified URL.
      * @param _url The full URL of the API endpoint to query.
      * @return requestId The unique ID for this request.
-     *
-     * This function will eventually be replaced by or wrap a native Rialo async call.
-     * The current implementation simulates the request initiation and logs the event.
      */
     function fetch(string memory _url) public returns (uint256) {
         uint256 requestId = nextRequestId++;
         requests[requestId] = Request({
             initiator: msg.sender,
-            url: _url
+            url: _url,
+            body: ""
         });
 
-        // --- PLACEHOLDER FOR RIALO HTTP PRIMITIVE ---
-        // This is where the native call to the Rialo network would be made.
-        // Example hypothetical syntax:
+        // --- PLACEHOLDER FOR RIALO HTTP GET PRIMITIVE ---
         // bytes memory response = await rialo.httpGet(_url);
         // _handleResponse(requestId, 200, string(response));
-        //
-        // For now, we will just emit an event to simulate a successful request.
-        // In a real scenario, a callback would handle the response.
         // -------------------------------------------
 
         // For demonstration, we'll immediately call a simulated callback.
-        _handleResponse(requestId, 200, '{"success": true, "data": "mock_response"}');
+        _handleResponse(requestId, 200, '{"success": true, "data": "mock_get_response"}');
+
+        return requestId;
+    }
+
+    /**
+     * @notice Initiates an HTTP POST request to the specified URL.
+     * @param _url The full URL of the API endpoint to query.
+     * @param _body The data to send in the request body.
+     * @return requestId The unique ID for this request.
+     */
+    function post(string memory _url, bytes memory _body) public returns (uint256) {
+        uint256 requestId = nextRequestId++;
+        requests[requestId] = Request({
+            initiator: msg.sender,
+            url: _url,
+            body: _body
+        });
+
+        // --- PLACEHOLDER FOR RIALO HTTP POST PRIMITIVE ---
+        // bytes memory response = await rialo.httpPost(_url, _body);
+        // _handleResponse(requestId, 200, string(response));
+        // --------------------------------------------
+
+        // For demonstration, we'll immediately call a simulated callback.
+        _handleResponse(requestId, 200, '{"success": true, "data": "mock_post_response"}');
 
         return requestId;
     }
