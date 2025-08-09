@@ -1,0 +1,25 @@
+{
+  "name": "fusion-gateway-sdk",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rialo",
+    "blockchain",
+    "oracle",
+    "fusion",
+    "gateway"
+  ],
+  "author": "Gemini",
+  "license": "MIT",
+  "description": "A TypeScript SDK for the Fusion Gateway framework on the Rialo blockchain.",
+  "dependencies": {
+    "@types/node": "^24.2.1",
+    "ethers": "^6.15.0",
+    "typescript": "^5.9.2"
+  }
+}
