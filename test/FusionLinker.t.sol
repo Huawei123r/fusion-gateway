@@ -49,15 +49,16 @@ contract FusionLinkerTest is Test {
         vm.prank(user);
         FusionLinker.KeyValuePair[] memory params = new FusionLinker.KeyValuePair[](1);
         params[0] = FusionLinker.KeyValuePair("id", "123");
+        string memory expectedUrl = "https://example.com/123/data";
 
-        vm.expectEmit(true, true, true, true);
-        emit FusionLinker.ResponseReceived(0, 200, '{"success": true, "data": "mock_get_response"}');
+        vm.expectEmit(true, true, false, true);
+        emit FusionLinker.ApiRequestInitiated(0, user, expectedUrl, "");
         uint256 requestId = fusionLinker.fetch(schemaName, params);
 
         assertEq(requestId, 0);
         (address initiator, string memory url, bytes memory body) = fusionLinker.requests(requestId);
         assertEq(initiator, user);
-        assertEq(url, "https://example.com/123/data");
+        assertEq(url, expectedUrl);
         assertEq(body.length, 0);
     }
 
@@ -66,15 +67,16 @@ contract FusionLinkerTest is Test {
         FusionLinker.KeyValuePair[] memory params = new FusionLinker.KeyValuePair[](1);
         params[0] = FusionLinker.KeyValuePair("id", "123");
         bytes memory postBody = abi.encodePacked('{"key":"value"}');
+        string memory expectedUrl = "https://example.com/123/data";
         
-        vm.expectEmit(true, true, true, true);
-        emit FusionLinker.ResponseReceived(0, 200, '{"success": true, "data": "mock_post_response"}');
+        vm.expectEmit(true, true, false, true);
+        emit FusionLinker.ApiRequestInitiated(0, user, expectedUrl, postBody);
         uint256 requestId = fusionLinker.post(schemaName, params, postBody);
 
         assertEq(requestId, 0);
         (address initiator, string memory url, bytes memory body) = fusionLinker.requests(requestId);
         assertEq(initiator, user);
-        assertEq(url, "https://example.com/123/data");
+        assertEq(url, expectedUrl);
         assertEq(body, postBody);
     }
 }

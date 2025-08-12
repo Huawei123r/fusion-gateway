@@ -19,6 +19,13 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
         string value;
     }
 
+    event ApiRequestInitiated(
+        uint256 indexed requestId,
+        address indexed initiator,
+        string url,
+        bytes body
+    );
+
     event ResponseReceived(
         uint256 indexed requestId,
         uint256 statusCode,
@@ -76,8 +83,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
             body: ""
         });
 
-        // This response is mocked for testing; a real implementation would be asynchronous.
-        _handleResponse(requestId, 200, '{"success": true, "data": "mock_get_response"}');
+        emit ApiRequestInitiated(requestId, msg.sender, url, "");
         return requestId;
     }
 
@@ -93,17 +99,16 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
             body: _body
         });
 
-        // This response is mocked for testing; a real implementation would be asynchronous.
-        _handleResponse(requestId, 200, '{"success": true, "data": "mock_post_response"}');
+        emit ApiRequestInitiated(requestId, msg.sender, url, _body);
         return requestId;
     }
 
     /**
-     * @notice Internal callback to handle the API response.
-     * @dev In a live environment, this would be called by the blockchain runtime.
+     * @notice Callback for the off-chain service to post the API response.
+     * @dev This should only be callable by an authorized service.
      */
-    function _handleResponse(uint256 _requestId, uint256 _statusCode, string memory _responseBody) internal {
-        // Pre-processing or validation can be added here.
+    function handleResponse(uint256 _requestId, uint256 _statusCode, string memory _responseBody) public {
+        // TODO: Add access control to ensure only the off-chain service can call this.
         emit ResponseReceived(_requestId, _statusCode, _responseBody);
     }
 
