@@ -90,3 +90,16 @@ For concrete examples and step-by-step guides, please see the `docs/` directory,
 -   Minting a commemorative NFT on a national holiday.
 -   Injecting news headlines into on-chain lore.
 -   Fetching the top-voted meme from a social media feed.
+
+---
+
+## 🔌 Asynchronous Execution Model
+
+The `FusionLinker` contract is designed to work asynchronously. In a live environment, it does not directly execute HTTP requests. Instead, it emits an event that is captured by an off-chain service.
+
+This off-chain service is responsible for:
+1.  Performing the actual HTTP `GET` or `POST` request.
+2.  Retrieving the response from the external API.
+3.  Submitting the response back to the blockchain by calling the appropriate callback function (e.g., `_handleWeatherResponse` in the `WeatherNFT` example).
+
+This model allows smart contracts to remain fully deterministic while still interacting with the outside world. The mock responses in the test suite simulate this asynchronous callback behavior for development and testing purposes.
