@@ -9,6 +9,7 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
  * @author Huawei123r
  * @notice A simple parser for extracting data from flat JSON responses.
  * @dev Supports basic string and uint extraction. Does not handle nested objects or arrays.
+ * @notice On-chain JSON parsing is gas-intensive. Use with caution.
  */
 contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
 
@@ -24,42 +25,46 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
 
     /**
      * @notice Extracts a string value for a given key from a JSON string.
+     * @return success A boolean indicating if the extraction was successful.
+     * @return value The extracted string value, or an empty string on failure.
      */
-    function extractString(string memory _json, string memory _key) public pure returns (string memory) {
+    function extractString(string memory _json, string memory _key) public pure returns (bool success, string memory value) {
         uint256 startIndex = findKey(_json, _key);
         if (startIndex == 0) {
-            return ""; // Key not found
+            return (false, ""); // Key not found
         }
 
         // Find opening quote of the value
         uint256 valueStartIndex = findNextChar(_json, '"', startIndex);
         if (valueStartIndex == 0) {
-            return ""; // Malformed
+            return (false, ""); // Malformed
         }
         valueStartIndex++;
 
         // Find closing quote of the value
         uint256 valueEndIndex = findNextChar(_json, '"', valueStartIndex);
         if (valueEndIndex == 0) {
-            return ""; // Malformed
+            return (false, ""); // Malformed
         }
 
-        return substring(_json, valueStartIndex, valueEndIndex);
+        return (true, substring(_json, valueStartIndex, valueEndIndex));
     }
 
     /**
      * @notice Extracts a uint value for a given key from a JSON string.
+     * @return success A boolean indicating if the extraction was successful.
+     * @return value The extracted uint value, or 0 on failure.
      */
-    function extractUint(string memory _json, string memory _key) public pure returns (uint256) {
+    function extractUint(string memory _json, string memory _key) public pure returns (bool success, uint256 value) {
         uint256 startIndex = findKey(_json, _key);
         if (startIndex == 0) {
-            return 0; // Key not found
+            return (false, 0); // Key not found
         }
 
         // Find the start of the number
         uint256 valueStartIndex = findNextNumericChar(_json, startIndex);
         if (valueStartIndex == 0) {
-            return 0; // Malformed
+            return (false, 0); // Malformed
         }
 
         // Find the end of the number
@@ -68,7 +73,7 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
             valueEndIndex = bytes(_json).length;
         }
 
-        return parseInt(substring(_json, valueStartIndex, valueEndIndex));
+        return (true, parseInt(substring(_json, valueStartIndex, valueEndIndex)));
     }
 
     // --- Internal helpers ---

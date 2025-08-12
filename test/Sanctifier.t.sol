@@ -24,31 +24,36 @@ contract SanctifierTest is Test {
 
     function testExtractString() public {
         string memory json = '{"name":"test","value":123}';
-        string memory result = sanctifier.extractString(json, "name");
+        (bool success, string memory result) = sanctifier.extractString(json, "name");
+        assertTrue(success);
         assertEq(result, "test");
     }
 
     function testExtractStringKeyNotFound() public {
         string memory json = '{"name":"test","value":123}';
-        string memory result = sanctifier.extractString(json, "notfound");
+        (bool success, string memory result) = sanctifier.extractString(json, "notfound");
+        assertFalse(success);
         assertEq(result, "");
     }
 
     function testExtractUint() public {
         string memory json = '{"name":"test","value":123}';
-        uint256 result = sanctifier.extractUint(json, "value");
+        (bool success, uint256 result) = sanctifier.extractUint(json, "value");
+        assertTrue(success);
         assertEq(result, 123);
     }
 
     function testExtractUintWithQuotes() public {
         string memory json = '{"name":"test","value":"456"}';
-        uint256 result = sanctifier.extractUint(json, "value");
+        (bool success, uint256 result) = sanctifier.extractUint(json, "value");
+        assertTrue(success);
         assertEq(result, 456);
     }
 
     function testExtractUintKeyNotFound() public {
         string memory json = '{"name":"test","value":123}';
-        uint256 result = sanctifier.extractUint(json, "notfound");
+        (bool success, uint256 result) = sanctifier.extractUint(json, "notfound");
+        assertFalse(success);
         assertEq(result, 0);
     }
 }

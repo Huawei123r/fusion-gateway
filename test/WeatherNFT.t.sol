@@ -105,7 +105,7 @@ contract WeatherNFTTest is Test {
 
         // We expect a log message, but no mint
         vm.expectEmit(true, false, false, true);
-        emit WeatherNFT.WeatherCheckResult("Rainfall is below threshold. No NFT minted.");
+        emit WeatherNFT.WeatherCheckResult("Failed to parse rainfall data from response.");
 
         // Simulate the callback
         mockFusionLinker.callHandleResponse(address(weatherNFT), 1, 200, mockResponse);

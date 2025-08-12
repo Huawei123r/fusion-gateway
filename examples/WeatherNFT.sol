@@ -63,11 +63,11 @@ contract WeatherNFT is ERC721Holder {
         }
 
         // Use the Sanctifier to parse the rainfall value from the JSON.
-        uint256 rainfallValue = sanctifier.extractUint(_responseBody, "rainfall_mm");
+        (bool success, uint256 rainfallValue) = sanctifier.extractUint(_responseBody, "rainfall_mm");
         
-        if (rainfallValue == 0 && bytes(_responseBody).length > 0) {
-            // This is a naive check for a parsing error.
-            // A more robust implementation would have better error handling.
+        if (!success) {
+            emit WeatherCheckResult("Failed to parse rainfall data from response.");
+            return;
         }
 
         if (rainfallValue > RAINFALL_THRESHOLD) {
