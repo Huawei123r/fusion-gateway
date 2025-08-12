@@ -58,7 +58,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
         string memory constructedUrl = schema.urlParts[0];
         for (uint i = 0; i < _params.length; i++) {
             // A more robust implementation would check all keys.
-            require(keccak256(abi.encodePacked(schema.keyPlaceholders[i])) == keccak256(abi.encodePacked(_params[i].key)), "FusionLinker: Invalid parameter key");
+            require(keccak256(abi.encodePacked(schema.keyPlaceholders[i])) == keccak256(abi.encodePacked(_params[i].key)), string.concat("FusionLinker: Invalid parameter key ", _params[i].key));
             constructedUrl = string(abi.encodePacked(constructedUrl, _params[i].value, schema.urlParts[i + 1]));
         }
         return constructedUrl;
