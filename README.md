@@ -2,13 +2,13 @@
 
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-FF0000?style=for-the-badge&logo=foundry)](https://github.com/foundry-rs/foundry)
 
-A modular framework for the Rialo blockchain that enables smart contracts to connect with real-world data from any HTTPS-based API, eliminating the need for traditional oracles for many common use cases.
+A modular framework for EVM-compatible blockchains that enables smart contracts to connect with real-world data from any HTTPS-based API, eliminating the need for traditional oracles for many common use cases.
 
 ---
 
 ## 📖 Overview
 
-The Fusion Gateway aims to unlock programmable reactivity and real-world connectivity for Rialo smart contracts. By providing a native, on-chain mechanism to fetch and process external data, we empower developers to build applications that are more dynamic, responsive, and connected to the world outside the blockchain.
+The Fusion Gateway aims to unlock programmable reactivity and real-world connectivity for smart contracts. By providing a native, on-chain mechanism to fetch and process external data, we empower developers to build applications that are more dynamic, responsive, and connected to the world outside the blockchain.
 
 The framework is composed of several key modules:
 
