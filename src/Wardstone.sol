@@ -15,6 +15,9 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
     // Mapping from the hash of an API key to its authorization status.
     // Hashes are stored to avoid exposing raw keys on-chain.
     mapping(bytes32 => bool) private authorizedApiKeys;
+    mapping(address => uint256) public lastRequestTimestamp;
+
+    uint256 public constant RATE_LIMIT_PERIOD = 60 seconds;
 
     event ApiKeyAuthorizationChanged(bytes32 indexed apiKeyHash, bool isAuthorized);
 
@@ -57,11 +60,12 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Placeholder for rate-limiting logic.
+     * @notice Checks if a user is allowed to make a request based on the rate limit.
+     * @dev Updates the user's last request timestamp if the check passes.
      */
-    function checkRateLimit(address /*_user*/) public pure returns (bool) {
-        // TODO: Implement rate-limiting logic (e.g., token bucket).
-        return true;
+    function checkRateLimit(address _user) public {
+        require(block.timestamp >= lastRequestTimestamp[_user] + RATE_LIMIT_PERIOD, "Wardstone: Rate limit exceeded");
+        lastRequestTimestamp[_user] = block.timestamp;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

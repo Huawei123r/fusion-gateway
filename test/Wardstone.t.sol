@@ -10,6 +10,7 @@ contract WardstoneTest is Test {
     Wardstone public wardstone;
     address owner;
     address nonOwner;
+    address user = address(0x456);
     string apiKey = "test-api-key";
 
     function setUp() public {
@@ -58,5 +59,30 @@ contract WardstoneTest is Test {
         assertFalse(wardstone.isApiKeyAuthorized(apiKey));
         wardstone.addApiKey(apiKey);
         assertTrue(wardstone.isApiKeyAuthorized(apiKey));
+    }
+
+    function testCheckRateLimit() public {
+        vm.prank(user);
+        wardstone.checkRateLimit(user);
+        assertEq(wardstone.lastRequestTimestamp(user), block.timestamp);
+    }
+
+    function testCheckRateLimit_Exceeded() public {
+        vm.prank(user);
+        wardstone.checkRateLimit(user);
+
+        vm.expectRevert("Wardstone: Rate limit exceeded");
+        wardstone.checkRateLimit(user);
+    }
+
+    function testCheckRateLimit_AfterPeriod() public {
+        vm.prank(user);
+        wardstone.checkRateLimit(user);
+
+        uint256 period = wardstone.RATE_LIMIT_PERIOD();
+        vm.warp(block.timestamp + period);
+
+        wardstone.checkRateLimit(user);
+        assertEq(wardstone.lastRequestTimestamp(user), block.timestamp);
     }
 }
