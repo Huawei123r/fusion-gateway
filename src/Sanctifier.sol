@@ -7,13 +7,8 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 /**
  * @title Sanctifier
  * @author Huawei123r
- * @notice This contract is responsible for parsing and sanitizing data returned
- * by the FusionLinker. It provides utility functions to extract values from
- * JSON responses and ensure they are safe to use in other contracts.
- *
- * NOTE: On-chain JSON parsing is a complex and gas-intensive operation.
- * This implementation provides a basic parser for simple, flat JSON objects.
- * It does not support nested objects or arrays.
+ * @notice A simple parser for extracting data from flat JSON responses.
+ * @dev Supports basic string and uint extraction. Does not handle nested objects or arrays.
  */
 contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
 
@@ -22,18 +17,13 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
         _disableInitializers();
     }
 
-
-
     function initialize(address initialOwner) public initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
     }
 
     /**
-     * @notice Parses a simple, flat JSON string to extract a string value for a given key.
-     * @param _json The JSON string to parse.
-     * @param _key The key to find.
-     * @return The string value associated with the key.
+     * @notice Extracts a string value for a given key from a JSON string.
      */
     function extractString(string memory _json, string memory _key) public pure returns (string memory) {
         uint256 startIndex = findKey(_json, _key);
@@ -41,27 +31,24 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
             return ""; // Key not found
         }
 
-        // Find the opening quote of the value
+        // Find opening quote of the value
         uint256 valueStartIndex = findNextChar(_json, '"', startIndex);
         if (valueStartIndex == 0) {
-            return ""; // Malformed JSON
+            return ""; // Malformed
         }
-        valueStartIndex++; // Move past the quote
+        valueStartIndex++;
 
-        // Find the closing quote of the value
+        // Find closing quote of the value
         uint256 valueEndIndex = findNextChar(_json, '"', valueStartIndex);
         if (valueEndIndex == 0) {
-            return ""; // Malformed JSON
+            return ""; // Malformed
         }
 
         return substring(_json, valueStartIndex, valueEndIndex);
     }
 
     /**
-     * @notice Parses a simple, flat JSON string to extract a uint value for a given key.
-     * @param _json The JSON string to parse.
-     * @param _key The key to find.
-     * @return The uint value associated with the key.
+     * @notice Extracts a uint value for a given key from a JSON string.
      */
     function extractUint(string memory _json, string memory _key) public pure returns (uint256) {
         uint256 startIndex = findKey(_json, _key);
@@ -72,7 +59,7 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
         // Find the start of the number
         uint256 valueStartIndex = findNextNumericChar(_json, startIndex);
         if (valueStartIndex == 0) {
-            return 0; // Malformed JSON
+            return 0; // Malformed
         }
 
         // Find the end of the number
@@ -84,7 +71,7 @@ contract Sanctifier is UUPSUpgradeable, OwnableUpgradeable {
         return parseInt(substring(_json, valueStartIndex, valueEndIndex));
     }
 
-    // Internal helper functions
+    // --- Internal helpers ---
 
     function findKey(string memory _json, string memory _key) internal pure returns (uint256) {
         bytes memory jsonBytes = bytes(_json);
