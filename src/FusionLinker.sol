@@ -9,37 +9,31 @@ import {SchemaForge} from "./SchemaForge.sol";
 /**
  * @title FusionLinker
  * @author Huawei123r
- * @notice This contract is the core HTTP fetcher for the Fusion Gateway framework.
- * It provides a standardized interface for other smart contracts to request data
- * from external HTTPS APIs. It is designed to be modular and reusable.
+ * @notice Core contract for fetching data from external HTTPS APIs.
  */
 contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
 
-    // Struct to hold a key-value pair for dynamic URL construction.
+    // For dynamic URL construction
     struct KeyValuePair {
         string key;
         string value;
     }
 
-    // Event to be emitted when an API response is received.
     event ResponseReceived(
         uint256 indexed requestId,
         uint256 statusCode,
         string responseBody
     );
 
-    // A counter to ensure unique request IDs.
     uint256 private nextRequestId;
     SchemaForge public schemaForge;
 
-    // Struct to hold the details of each request.
     struct Request {
         address initiator;
         string url;
-        bytes body; // Added for POST requests
+        bytes body; // For POST requests
     }
 
-    // Mapping from request ID to the request details.
     mapping(uint256 => Request) public requests;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -54,7 +48,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Constructs a URL from a schema and a set of key-value pairs.
+     * @notice Constructs a URL from a schema and key-value parameters.
      */
     function constructUrl(string memory _schemaName, KeyValuePair[] memory _params) public view returns (string memory) {
         SchemaForge.ApiSchema memory schema = schemaForge.getSchema(_schemaName);
@@ -63,7 +57,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
 
         string memory constructedUrl = schema.urlParts[0];
         for (uint i = 0; i < _params.length; i++) {
-            // This is a simple check. A more robust implementation would check all keys.
+            // A more robust implementation would check all keys.
             require(keccak256(abi.encodePacked(schema.keyPlaceholders[i])) == keccak256(abi.encodePacked(_params[i].key)), "FusionLinker: Invalid parameter key");
             constructedUrl = string(abi.encodePacked(constructedUrl, _params[i].value, schema.urlParts[i + 1]));
         }
@@ -82,6 +76,7 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
             body: ""
         });
 
+        // This response is mocked for testing; a real implementation would be asynchronous.
         _handleResponse(requestId, 200, '{"success": true, "data": "mock_get_response"}');
         return requestId;
     }
@@ -98,20 +93,17 @@ contract FusionLinker is UUPSUpgradeable, OwnableUpgradeable {
             body: _body
         });
 
+        // This response is mocked for testing; a real implementation would be asynchronous.
         _handleResponse(requestId, 200, '{"success": true, "data": "mock_post_response"}');
         return requestId;
     }
 
     /**
-     * @notice Internal callback function to handle the API response.
-     * @dev This function would be called by the Rialo runtime upon completion of the HTTP request.
-     * @param _requestId The ID of the request being fulfilled.
-     * @param _statusCode The HTTP status code of the response.
-     * @param _responseBody The body of the HTTP response.
+     * @notice Internal callback to handle the API response.
+     * @dev In a live environment, this would be called by the blockchain runtime.
      */
     function _handleResponse(uint256 _requestId, uint256 _statusCode, string memory _responseBody) internal {
-        // Here, you could add logic to parse or validate the response before emitting.
-        // For now, we just emit the raw response.
+        // Pre-processing or validation can be added here.
         emit ResponseReceived(_requestId, _statusCode, _responseBody);
     }
 
