@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 
 /**
  * @title Sanctifier
- * @author Gemini
+ * @author Huawei123r
  * @notice This contract is responsible for parsing and sanitizing data returned
  * by the FusionLinker. It provides utility functions to extract values from
  * JSON responses and ensure they are safe to use in other contracts.

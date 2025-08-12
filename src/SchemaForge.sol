@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 
 /**
  * @title SchemaForge
- * @author Gemini
+ * @author Huawei123r
  * @notice This contract is a registry for API schemas. It maps a human-readable
  * name for an API endpoint to its technical details, such as the URL template,
  * expected data keys, and the address of a specific parser contract.

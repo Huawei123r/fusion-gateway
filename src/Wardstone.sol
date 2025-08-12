@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 
 /**
  * @title Wardstone
- * @author Gemini
+ * @author Huawei123r
  * @notice This contract provides access control and rate limiting for the Fusion Gateway.
  * It allows the owner to manage a set of authorized API keys that can be required
  * to access certain FusionLinker functionalities.

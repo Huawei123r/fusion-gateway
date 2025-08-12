@@ -8,7 +8,7 @@ import {SchemaForge} from "./SchemaForge.sol";
 
 /**
  * @title FusionLinker
- * @author Gemini
+ * @author Huawei123r
  * @notice This contract is the core HTTP fetcher for the Fusion Gateway framework.
  * It provides a standardized interface for other smart contracts to request data
  * from external HTTPS APIs. It is designed to be modular and reusable.

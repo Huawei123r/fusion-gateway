@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 
 /**
  * @title LoreHooks
- * @author Gemini
+ * @author Huawei123r
  * @notice This contract is an optional module for the Fusion Gateway that allows
  * for the creation of narrative triggers and lore-rich events based on external data.
  * It can be used to invoke dynamic on-chain events in response to specific patterns
