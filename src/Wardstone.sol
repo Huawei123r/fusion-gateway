@@ -7,21 +7,15 @@ import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/a
 /**
  * @title Wardstone
  * @author Huawei123r
- * @notice This contract provides access control and rate limiting for the Fusion Gateway.
- * It allows the owner to manage a set of authorized API keys that can be required
- * to access certain FusionLinker functionalities.
- *
- * NOTE: This is a basic implementation. A production system might require more
- * granular permissions, role-based access control (RBAC), and more sophisticated
- * rate-limiting mechanisms (e.g., token bucket algorithm).
+ * @notice Manages access control and API key authorization.
+ * @dev Provides a basic authorization layer. A production system might need more granular RBAC.
  */
 contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
 
-    // Mapping from a keccak256 hash of an API key to a boolean indicating its validity.
-    // We store hashes to avoid exposing the raw API keys on-chain.
+    // Mapping from the hash of an API key to its authorization status.
+    // Hashes are stored to avoid exposing raw keys on-chain.
     mapping(bytes32 => bool) private authorizedApiKeys;
 
-    // Event emitted when an API key is added or removed.
     event ApiKeyAuthorizationChanged(bytes32 indexed apiKeyHash, bool isAuthorized);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -35,10 +29,8 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Authorizes a new API key.
-     * @dev Only the contract owner can call this function.
-     * The key is hashed before being stored.
-     * @param _apiKey The API key to authorize.
+     * @notice Authorizes a new API key by storing its hash.
+     * @dev Can only be called by the owner.
      */
     function addApiKey(string memory _apiKey) public onlyOwner {
         bytes32 apiKeyHash = keccak256(abi.encodePacked(_apiKey));
@@ -48,8 +40,7 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
 
     /**
      * @notice Revokes authorization for an API key.
-     * @dev Only the contract owner can call this function.
-     * @param _apiKey The API key to revoke.
+     * @dev Can only be called by the owner.
      */
     function removeApiKey(string memory _apiKey) public onlyOwner {
         bytes32 apiKeyHash = keccak256(abi.encodePacked(_apiKey));
@@ -58,9 +49,7 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Checks if a given API key is authorized.
-     * @param _apiKey The API key to check.
-     * @return True if the key is authorized, false otherwise.
+     * @notice Checks if an API key is currently authorized.
      */
     function isApiKeyAuthorized(string memory _apiKey) public view returns (bool) {
         bytes32 apiKeyHash = keccak256(abi.encodePacked(_apiKey));
@@ -68,13 +57,10 @@ contract Wardstone is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Placeholder for rate-limiting logic. This could be implemented
-     * using a mapping to track request timestamps or counters for each user/key.
-     * For example: `mapping(address => uint256) public lastRequestTimestamp;`
+     * @dev Placeholder for rate-limiting logic.
      */
     function checkRateLimit(address /*_user*/) public pure returns (bool) {
-        // Replace with actual rate-limiting logic.
-        // For now, it always returns true.
+        // TODO: Implement rate-limiting logic (e.g., token bucket).
         return true;
     }
 
