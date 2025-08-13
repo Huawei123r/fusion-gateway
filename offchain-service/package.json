@@ -1,0 +1,14 @@
+{
+  "name": "fusion-gateway-listener",
+  "version": "1.0.0",
+  "description": "Off-chain listener for the Fusion Gateway",
+  "main": "listener.js",
+  "scripts": {
+    "start": "node listener.js"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^5.7.2"
+  }
+}
