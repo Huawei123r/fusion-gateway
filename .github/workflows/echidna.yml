@@ -34,6 +34,11 @@ jobs:
           # run echidna against contracts directory; adjust target and options as needed
           echidna-test ./ -c FusionLinker --contract FusionLinker --test-mode assertion --reporter json -o echidna-report.json || true
 
+      - name: Parse Echidna report
+        run: |
+          python3 scripts/ci/parse_echidna.py echidna-report.json || true
+
+
       - name: Upload Echidna report
         uses: actions/upload-artifact@v4
         with:

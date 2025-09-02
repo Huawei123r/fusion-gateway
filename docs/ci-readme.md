@@ -28,4 +28,8 @@ scripts/ci/run_echidna.sh
 ```
 
 Reports are uploaded as `echidna-report` artifacts in CI.
+
+Parsing and gating
+-------------------
+CI will parse Echidna reports using `scripts/ci/parse_echidna.py`. If any counterexamples are found, the parser exits non-zero which can be used to fail the job and block merges until addressed.
 - To enrich PR comments, update `scripts/ci/parse_slither.py` to include more details.
