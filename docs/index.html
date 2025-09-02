@@ -11,6 +11,61 @@
       <li><a href="/docs/security-dashboard.md">Security Dashboard (MD)</a></li>
       <li><a href="/docs/test-dashboard.md">Test Dashboard (MD)</a></li>
     </ul>
+
+    <h2>Live Workflow Status</h2>
+    <p>This page fetches the latest workflow run status from the GitHub Actions API (public repos only).</p>
+    <div id="workflow-status">
+      <p>Loading workflow status...</p>
+    </div>
+
+    <script>
+      // Short helper to show latest runs for key workflows
+      (async function(){
+        const owner = 'Huawei123r';
+        const repo = 'fusion-gateway';
+        const workflows = ['ci.yml','slither-schedule.yml','echidna.yml'];
+        const container = document.getElementById('workflow-status');
+        container.innerHTML = '';
+        for(const wf of workflows){
+          const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${wf}/runs?per_page=1`;
+          try{
+            const res = await fetch(url);
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            const run = (data.workflow_runs && data.workflow_runs[0]) || null;
+            const card = document.createElement('div');
+            card.style.border = '1px solid #ddd';
+            card.style.padding = '10px';
+            card.style.marginBottom = '8px';
+            const title = document.createElement('strong');
+            title.textContent = wf.replace('.yml','').toUpperCase();
+            card.appendChild(title);
+            if(!run){
+              const p = document.createElement('p'); p.textContent = 'No recent runs found.'; card.appendChild(p);
+            } else {
+              const status = document.createElement('p');
+              status.innerHTML = `Status: <em>${run.status}</em> — Conclusion: <em>${run.conclusion || 'n/a'}</em>`;
+              card.appendChild(status);
+              const when = document.createElement('p');
+              when.textContent = `Updated: ${new Date(run.updated_at).toLocaleString()}`;
+              card.appendChild(when);
+              const a = document.createElement('a');
+              a.href = run.html_url;
+              a.textContent = 'View run in Actions';
+              a.target = '_blank';
+              card.appendChild(a);
+            }
+            container.appendChild(card);
+          }catch(err){
+            const e = document.createElement('div');
+            e.textContent = `Failed to fetch ${wf}: ${err.message}`;
+            e.style.color = 'red';
+            container.appendChild(e);
+          }
+        }
+      })();
+    </script>
+
     <p>Artifacts from CI runs are available in the GitHub Actions UI.</p>
   </body>
 </html>
