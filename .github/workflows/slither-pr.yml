@@ -1,0 +1,60 @@
+name: Slither PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  slither-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Slither
+        run: |
+          python -m pip install --upgrade pip
+          pip install slither-analyzer
+
+      - name: Run Slither (JSON)
+        id: slither
+        run: |
+          slither src/ --json slither-pr.json --filter-paths test/ || true
+          echo "report=slither-pr.json" >> "$GITHUB_OUTPUT"
+
+      - name: Parse Slither JSON
+        id: parse
+        run: |
+            python3 scripts/ci/parse_slither.py slither-pr.json parsed-slither.json parsed-slither.md
+            cat parsed-slither.md
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload parsed report
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-pr-parsed
+          path: parsed-slither.json
+        # upload markdown separately
+      - name: Upload markdown summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-pr-md
+          path: parsed-slither.md
+
+      - name: Post PR comment with summary
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+            path: parsed-slither.md
+*** End Patch
