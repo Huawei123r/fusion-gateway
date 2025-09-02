@@ -27,6 +27,18 @@ Optional integrations:
 - MythX: requires `MYTHX_API_KEY` secret configured in repository settings. When provided, the MythX workflow will run and upload reports.
 - Slack notifications: set `SLACK_WEBHOOK` secret to enable notifications when monitored workflows fail.
 
+Full weekly sweep & performance
+--------------------------------
+We added a weekly full test sweep (`.github/workflows/full-tests-schedule.yml`) which runs Forge tests, Node tests, Slither, and Echidna and uploads artifacts.
+
+For local performance testing, run:
+
+```bash
+scripts/ci/run_perf.sh
+```
+
+This uses `autocannon` to load test the `offchain-service` (adjust port in script as needed).
+
 ```bash
 scripts/ci/run_echidna.sh
 ```

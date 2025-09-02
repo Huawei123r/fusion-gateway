@@ -1,0 +1,73 @@
+name: Full Weekly Test Sweep
+
+on:
+  schedule:
+    - cron: '0 3 * * 2' # Weekly Tue 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  full-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Run Forge tests
+        run: |
+          forge test -vvv --gas-report
+
+      - name: Upload gas report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gas-report
+          path: gas_report.txt
+          if-no-files-found: ignore
+
+      - name: Run Node tests
+        working-directory: sdk
+        run: |
+          npm ci
+          npm test
+
+      - name: Run offchain-service tests
+        working-directory: offchain-service
+        run: |
+          npm ci
+          npm test
+
+      - name: Run Slither
+        run: |
+          python -m pip install --upgrade pip
+          pip install slither-analyzer
+          slither src/ --json slither-scan-weekly.json --filter-paths test/ || true
+          python3 scripts/ci/parse_slither.py slither-scan-weekly.json slither-scan-weekly-parsed.json slither-scan-weekly.md || true
+      - name: Upload Slither weekly
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-weekly
+          path: |
+            slither-scan-weekly.json
+            slither-scan-weekly-parsed.json
+            slither-scan-weekly.md
+          if-no-files-found: warn
+
+      - name: Run Echidna
+        run: |
+          sudo apt-get update && sudo apt-get install -y cabal-install ghc jq || true
+          cabal update || true
+          cabal install echidna || true
+          echidna-test ./ -c FusionLinker --contract FusionLinker --test-mode assertion --reporter json -o echidna-weekly.json || true
+      - name: Upload Echidna weekly
+        uses: actions/upload-artifact@v4
+        with:
+          name: echidna-weekly
+          path: echidna-weekly.json
+          if-no-files-found: warn
