@@ -16,12 +16,16 @@ How it works:
 - Slither runs in CI and on PRs; the PR workflow parses results and posts a summary comment.
 
 Extending:
-- You can add more security tools (mythx, echidna, fuzzing) by adding jobs similar to Slither.
  - You can add more security tools (MythX, Echidna) by adding jobs similar to Slither.
   
 Echidna fuzzing
-----------------
 Echidna runs weekly and on PRs via `.github/workflows/echidna.yml`. You can run it locally with:
+
+MythX & Notifications
+----------------------
+Optional integrations:
+- MythX: requires `MYTHX_API_KEY` secret configured in repository settings. When provided, the MythX workflow will run and upload reports.
+- Slack notifications: set `SLACK_WEBHOOK` secret to enable notifications when monitored workflows fail.
 
 ```bash
 scripts/ci/run_echidna.sh

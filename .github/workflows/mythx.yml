@@ -1,0 +1,32 @@
+name: MythX Analysis (optional)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+
+jobs:
+  mythx:
+    runs-on: ubuntu-latest
+    if: secrets.MYTHX_API_KEY != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install mythx-cli
+        run: |
+          npm ci
+          npm install -g mythx-cli || true
+      - name: Run MythX
+        env:
+          MYTHX_API_KEY: ${{ secrets.MYTHX_API_KEY }}
+        run: |
+          scripts/ci/run_mythx.sh || true
+      - name: Upload MythX report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythx-report
+          path: mythx-report.json
+          if-no-files-found: warn

@@ -1,0 +1,19 @@
+name: Notify on workflow failure
+
+on:
+  workflow_run:
+    workflows: [CI, Echidna Fuzzing, Slither Scheduled Security Scan]
+    types: [completed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'success' && secrets.SLACK_WEBHOOK != ''
+    steps:
+      - name: Send Slack notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          args: |
+            --text "Workflow `${{ github.event.workflow_run.name }}` failed: ${{ github.event.workflow_run.html_url }}"
