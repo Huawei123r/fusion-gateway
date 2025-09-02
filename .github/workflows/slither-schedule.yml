@@ -26,7 +26,7 @@ jobs:
           slither src/ --json slither-scan.json --filter-paths test/ || true
       - name: Parse Slither JSON
         run: |
-          python3 scripts/ci/parse_slither.py slither-scan.json slither-scan-parsed.json slither-scan-summary.md || true
+          python3 scripts/ci/parse_slither.py slither-scan.json slither-scan-parsed.json slither-scan-summary.md
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
