@@ -17,4 +17,15 @@ How it works:
 
 Extending:
 - You can add more security tools (mythx, echidna, fuzzing) by adding jobs similar to Slither.
+ - You can add more security tools (MythX, Echidna) by adding jobs similar to Slither.
+  
+Echidna fuzzing
+----------------
+Echidna runs weekly and on PRs via `.github/workflows/echidna.yml`. You can run it locally with:
+
+```bash
+scripts/ci/run_echidna.sh
+```
+
+Reports are uploaded as `echidna-report` artifacts in CI.
 - To enrich PR comments, update `scripts/ci/parse_slither.py` to include more details.

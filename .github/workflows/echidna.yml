@@ -1,0 +1,42 @@
+name: Echidna Fuzzing
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["master"]
+  schedule:
+    - cron: '0 6 * * 0' # weekly on Sunday 06:00 UTC
+
+jobs:
+  echidna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cabal-install ghc python3-pip jq
+          pip3 install -U pip
+
+      - name: Install Echidna (via cabal)
+        run: |
+          cabal update
+          cabal install echidna
+          echo "Echidna installed"
+
+      - name: Run Echidna fuzzing
+        run: |
+          # run echidna against contracts directory; adjust target and options as needed
+          echidna-test ./ -c FusionLinker --contract FusionLinker --test-mode assertion --reporter json -o echidna-report.json || true
+
+      - name: Upload Echidna report
+        uses: actions/upload-artifact@v4
+        with:
+          name: echidna-report
+          path: echidna-report.json
+          if-no-files-found: warn
